@@ -21,6 +21,8 @@ append_redsocks_conf() {
   local ip=$2
   local port=$3
   local local_port=$4
+  local login=$5
+  local password=$6
   if [ -z "$type" -o -z "$ip" -o -z "$port" -o -z "$local_port" ] ; then
     echo missing required parameter >&2
     exit 1
@@ -32,6 +34,8 @@ redsocks {
   port = $port;
   local_ip = 0.0.0.0;
   local_port = $local_port;
+  login = $login
+  password = $password
 }
 EOF
 ) >> /tmp/redsocks.conf
@@ -43,6 +47,14 @@ parse_ip() {
 
 parse_port() {
   echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)\/?$/\4/p"
+}
+
+parse_login() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\4/p"
+}
+
+parse_password() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\5/p"
 }
 
 stop() {
@@ -69,7 +81,9 @@ run() {
 
     ip=$(parse_ip $http_proxy)
     port=$(parse_port $http_proxy)
-    append_redsocks_conf "http-relay" $ip $port "12345"
+    login=$(parse_login $http_proxy)
+    password=$(parse_password $http_proxy)
+    append_redsocks_conf "http-relay" $ip $port "12345" $login $password
 
     if [ -z "$https_proxy" ]; then
         https_proxy="$http_proxy"
@@ -77,7 +91,9 @@ run() {
 
     ip=$(parse_ip $https_proxy)
     port=$(parse_port $https_proxy)
-    append_redsocks_conf "http-connect" $ip $port "12346"
+    login=$(parse_login $https_proxy)
+    password=$(parse_password $https_proxy)
+    append_redsocks_conf "http-connect" $ip $port "12346" $login $password
 
     iptables_rules A
     /usr/sbin/redsocks -c /tmp/redsocks.conf &
