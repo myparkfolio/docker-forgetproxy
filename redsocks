@@ -34,19 +34,19 @@ redsocks {
   port = $port;
   local_ip = 0.0.0.0;
   local_port = $local_port;
-  login = $login
-  password = $password
+  login = "$login";
+  password = "$password";
 }
 EOF
 ) >> /tmp/redsocks.conf
 }
 
 parse_ip() {
-  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)\/?$/\3/p"
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\6/p"
 }
 
 parse_port() {
-  echo $1 | sed -nE "s/^(http(s)?:\/\/)?(.+):([0-9]+)\/?$/\4/p"
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\7/p"
 }
 
 parse_login() {
