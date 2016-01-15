@@ -7,8 +7,8 @@ ENV https_proxy ${https_proxy:-nil}
 COPY contrib/proxy_debian.sh /etc/profile.d/
 
 RUN . /etc/profile \
-    && apt-get -q update \
-    && apt-get -qy install \
+    && apt-get update \
+    && apt-get -y install \
         iptables \
         procps \
         psmisc \
