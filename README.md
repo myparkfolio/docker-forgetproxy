@@ -25,11 +25,30 @@ All network connections coming out of the docker0 interface will automatically b
 The container  interprets the environment variables http_proxy and https_proxy to configure the socks proxy. 
 
 
+## What's new
+
+This project has been forked to managed ldap authentication with a login and a password in the proxy url.
+
+Two build helpers files was added:
+ * build.sh => allow to build docker (with proxy apt, wget, environment configuration)
+ * run.sh => allow to run docker (like the start command)
+
+The only thing you should think about is to configure your environment proxy http_proxy and https_proxy and the scripts would do the rest.
+
+Beware if you run docker with sudo to use "sudo -E" in order to propagate your current environment variables.
+ 
+
 ## How to use it
+
+### build
+
+    ./build.sh
+
+First step is to build the project if it is not already done.
 
 ### start
 
-    docker run -ti --net=host --privileged -e http_proxy=http://myproxy:3128 -e https_proxy=http://myproxy:3128 klabs/forgetproxy
+    ./run.sh
 
 It is recommended to let the container run in the foreground as it is configured to intercept the CTRL+C and clean
 the iptables rules on exit.
@@ -40,4 +59,4 @@ If you have your container running, just press CTRL+C.
 If you need to manually clean the iptables rules that are set by the container, you can run the following command
 until you get an error telling you the rules do no exist.
 
-    docker run --net=host --privileged klabs/forgetproxy stop
+    ./stop.sh
