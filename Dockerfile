@@ -13,8 +13,9 @@ RUN . /etc/profile \
         iptables \
         procps \
         psmisc \
-        redsocks
-    
+        redsocks \
+    && clear_proxy
+
 ADD redsocks.conf /tmp/
 ADD redsocks /root/
 

@@ -2,6 +2,13 @@
 #
 # configure a proxy when http_proxy is defined on the system
 #
+parse_ip() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\6/p"
+}
+
+parse_port() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\7/p"
+}
 
 parse_login() {
   echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\4/p"
@@ -11,8 +18,16 @@ parse_password() {
   echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\5/p"
 }
 
-if [ ! -z "$http_proxy" ] &&  [ ! "$http_proxy" = '"nil"' ]; then
-    echo "setting up proxy"
+remove_auth() {
+  echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\1\6:\7/p"
+}
+
+set_proxy() {
+
+    local http_proxy=$1
+    local https_proxy=$2
+
+    echo "setting up proxy $http_proxy $https_proxy"
 
     if [ -z "$https_proxy"  ] && [ ! "$https_proxy" = '"nil"' ]; then
          https_proxy=$http_proxy
@@ -29,8 +44,10 @@ if [ ! -z "$http_proxy" ] &&  [ ! "$http_proxy" = '"nil"' ]; then
     export socks_proxy=$(echo $http_proxy | sed 's/^http/socks/g')
     export no_proxy=localhost,127.0.0.1,10.0.0.0/16
     
-    login=$(parse_login $http_proxy)
-    password=$(parse_password $http_proxy)
+    local http_proxy_noauth=$(remove_auth $http_proxy)
+    local https_proxy_noauth=$(remove_auth $https_proxy)
+    local login=$(parse_login $http_proxy)
+    local password=$(parse_password $http_proxy)
 
     if [ "$(id -u)" = "0" ] ; then # should only be done by root
       echo "configure apt proxy"
@@ -47,8 +64,8 @@ APT_CONF
 
       # configure wget
       cat > ~/.wgetrc <<EOL
-    http_proxy = http://proxy.parkeon.com:9090/
-    https_proxy =
+    http_proxy = $http_proxy_noauth
+    https_proxy = $https_proxy_noauth
     proxy_user = $login
     proxy_password = $password
     use_proxy = on
@@ -56,8 +73,10 @@ APT_CONF
 EOL
 
     fi
-else
-    echo "skiping proxy settings"
+}
+
+clear_proxy() {
+    echo "clear proxy settings"
 
     unset PROXY
     unset http_proxy
@@ -69,8 +88,17 @@ else
     unset no_proxy
 
     if [ "$(id -u)" = "0" ] ; then # should only be done by root
+        # clear proxy settings
         [ -f /etc/apt/apt.conf ] && cat /etc/apt/apt.conf | grep -v '::proxy' > /etc/apt.conf
+        [ -f ~/.wgetrc ] && rm ~/.wgetrc
     fi
+}
+
+# MAIN
+if [ ! -z "$http_proxy" ] &&  [ ! "$http_proxy" = '"nil"' ]; then
+    set_proxy $http_proxy $https_proxy
+else
+    clear_proxy
 fi
 
 # for debug only
