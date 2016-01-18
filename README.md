@@ -59,4 +59,4 @@ If you have your container running, just press CTRL+C.
 If you need to manually clean the iptables rules that are set by the container, you can run the following command
 until you get an error telling you the rules do no exist.
 
-    ./stop.sh
+    docker run -ti --net=host --privileged myparkfolio/docker-forgetproxy stop
