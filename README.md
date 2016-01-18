@@ -42,13 +42,13 @@ Beware if you run docker with sudo to use "sudo -E" in order to propagate your c
 
 ### build
 
-    docker build -t docker-forgetproxy --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy .
+    docker build -t myparkfolio/docker-forgetproxy --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy .
 
 First step is to build the project if it is not already done.
 
 ### start
 
-     docker run -ti --net=host --privileged -e http_proxy=$http_proxy -e https_proxy=$https_proxy docker-forgetproxy
+     docker run -ti --net=host --privileged -e http_proxy=$http_proxy -e https_proxy=$https_proxy myparkfolio/docker-forgetproxy
 
 It is recommended to let the container run in the foreground as it is configured to intercept the CTRL+C and clean
 the iptables rules on exit.
