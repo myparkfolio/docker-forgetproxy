@@ -4,6 +4,7 @@ ENV http_proxy ${http_proxy:-nil}
 ENV https_proxy ${https_proxy:-nil}
 
 # Allow to manage proxy initialisation
+# @todo Beware proxy login/password write in config file, remove it
 COPY contrib/proxy_debian.sh /etc/profile.d/
 
 RUN . /etc/profile \
