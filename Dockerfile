@@ -1,4 +1,4 @@
-FROM debian:wheezy
+FROM centos:centos7
 
 ENV http_proxy ${http_proxy:-nil}
 ENV https_proxy ${https_proxy:-nil}
@@ -8,16 +8,21 @@ ENV https_proxy ${https_proxy:-nil}
 COPY contrib/proxy_debian.sh /etc/profile.d/
 
 RUN . /etc/profile \
-    && apt-get update \
-    && apt-get -y install \
+    && yum install -y \
         iptables \
         procps \
         psmisc \
-        redsocks \
+        squid \
+        nc \
     && clear_proxy
 
-ADD redsocks.conf /tmp/
-ADD redsocks /root/
+ADD squid.conf /etc/squid/squid.conf
+ADD squid /root/
 
-ENTRYPOINT ["/bin/bash", "/root/redsocks"]
+# Make cache dirs 
+RUN squid -z -F
+
+EXPOSE 3128
+
+ENTRYPOINT ["/bin/bash", "/root/squid"]
 

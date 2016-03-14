@@ -8,7 +8,7 @@ having to configure the proxy in every container.
 You can run this container instead to just forget it and let docker run as if you had a direct connection
 to the outside world.
 
-This container is based on the [munkyboy / redsocks](https://registry.hub.docker.com/u/munkyboy/redsocks/) one.
+This container is based on the [munkyboy / redsocks](https://registry.hub.docker.com/u/munkyboy/redsocks/) one and the squid proxy https://github.com/akram/docker-squid.
 It runs entirely from inside the container.
 
 
@@ -22,7 +22,7 @@ It runs entirely from inside the container.
 
 All network connections coming out of the docker0 interface will automatically be proxified.
 
-The container  interprets the environment variables http_proxy and https_proxy to configure the socks proxy. 
+The container  interprets the environment variables http_proxy to configure the squid proxy.
 
 
 ## What's new
@@ -48,10 +48,12 @@ First step is to build the project if it is not already done.
 
 ### start
 
-     docker run -ti --net=host --privileged -e http_proxy=$http_proxy -e https_proxy=$https_proxy myparkfolio/docker-forgetproxy
+     docker run -ti --net=host --privileged -e http_proxy=$http_proxy myparkfolio/docker-forgetproxy
 
 It is recommended to let the container run in the foreground as it is configured to intercept the CTRL+C and clean
 the iptables rules on exit.
+
+Manage http and https on the same port 3128, only one configuration is required but both are configured.
 
 ### stop
 

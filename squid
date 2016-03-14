@@ -10,38 +10,37 @@ iptables_rules() {
     iptables -t nat -$1 PREROUTING -i docker0 -d 224.0.0.0/4 -j RETURN
     iptables -t nat -$1 PREROUTING -i docker0 -d 240.0.0.0/4 -j RETURN
 
-    iptables -t nat -$1 PREROUTING -p tcp --dport 80   -i docker0 -j REDIRECT --to 12345 2>/dev/null
-    iptables -t nat -$1 PREROUTING -p tcp --dport 8080 -i docker0 -j REDIRECT --to 12345 2>/dev/null
-    iptables -t nat -$1 PREROUTING -p tcp -i docker0 -j REDIRECT --to 12346 
-
+    iptables -t nat -$1 PREROUTING -p tcp --dport 80   -i docker0 -j REDIRECT --to 3128 2>/dev/null
+    iptables -t nat -$1 PREROUTING -p tcp --dport 8080 -i docker0 -j REDIRECT --to 3128 2>/dev/null
+    iptables -t nat -$1 PREROUTING -p tcp -i docker0 -j REDIRECT --to 3128 
 }
 
-append_redsocks_conf() {
-  local type=$1
-  local ip=$2
-  local port=$3
-  local local_port=$4
-  local login=$5
-  local password=$6
-  if [ -z "$type" -o -z "$ip" -o -z "$port" -o -z "$local_port" ] ; then
+append_squid_conf() {
+  local host=$1
+  local port=$2
+  local local_port=$3
+  local login=$4
+  local password=$5
+
+  local userpass="$login"
+
+  if [ ! -z "$password" ] ; then
+    userpass="$login:$password"
+  fi
+
+  if [ -z "$host" -o -z "$port" -o -z "$local_port" ] ; then
     echo missing required parameter >&2
     exit 1
   fi
+
   (cat <<EOF
-redsocks {
-  type = $type;
-  ip = $ip;
-  port = $port;
-  local_ip = 0.0.0.0;
-  local_port = $local_port;
-  login = "$login";
-  password = "$password";
-}
+  cache_peer $host parent $port 0 no-query default login=$userpass
+  never_direct allow all
 EOF
-) >> /tmp/redsocks.conf
+) >> /etc/squid/squid.conf
 }
 
-parse_ip() {
+parse_host() {
   echo $1 | sed -nE "s/^(http(s)?:\/\/)?((.+):(.+)@)?(.+):([0-9]+)\/?$/\6/p"
 }
 
@@ -60,7 +59,7 @@ parse_password() {
 stop() {
     echo "Cleaning iptables"
     iptables_rules D
-    pkill -9 redsocks
+    pkill -9 squid
 }
 
 interrupted () {
@@ -79,26 +78,19 @@ run() {
         exit 1
     fi
 
-    ip=$(parse_ip $http_proxy)
+    host=$(parse_host $http_proxy)
     port=$(parse_port $http_proxy)
     login=$(parse_login $http_proxy)
     password=$(parse_password $http_proxy)
-    append_redsocks_conf "http-relay" $ip $port "12345" $login $password
-
-    if [ -z "$https_proxy" ]; then
-        https_proxy="$http_proxy"
-    fi
-
-    ip=$(parse_ip $https_proxy)
-    port=$(parse_port $https_proxy)
-    login=$(parse_login $https_proxy)
-    password=$(parse_password $https_proxy)
-    append_redsocks_conf "http-connect" $ip $port "12346" $login $password
+    append_squid_conf $host $port "3128" $login $password
 
     iptables_rules A
-    /usr/sbin/redsocks -c /tmp/redsocks.conf &
 
-    tail -f /dev/null
+    # -X verbose debug logging
+    # -N Don't run in daemon mode - important for docker
+    squid -X -N
+    #tail -f /dev/null
+    #tail -f /var/log/squid/access.log
 }
 
 
