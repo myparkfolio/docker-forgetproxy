@@ -1,6 +1,6 @@
 # docker-forgetproxy
 
-A transparent socks proxy for Docker.
+A transparent http with auth proxy (via socks) for Docker.
 
 If you are running Docker behind a corporate http proxy, you probably know how annoying it is
 having to configure the proxy in every container.
@@ -20,9 +20,9 @@ It runs entirely from inside the container.
 
 ## How it works
 
-All network connections coming out of the docker0 interface will automatically be proxified.
+All hhtp network connections coming out of the docker0 interface will automatically be proxified.
 
-The container  interprets the environment variables http_proxy to configure the squid proxy.
+The container interprets the environment variables http_proxy to configure the squid proxy. For parkeon users, you can unset your http_proxy environment variable and then during launching of this proxy, it will ask for your password and forge proxy url
 
 
 ## What's new
@@ -30,19 +30,17 @@ The container  interprets the environment variables http_proxy to configure the 
 This project has been forked to managed ldap authentication with a login and a password in the proxy url.
 
 Two build helpers files was added:
- * build.sh => allow to build docker (with proxy apt, wget, environment configuration)
+ * build.sh => allow to build docker (with environment configuration )
  * run.sh => allow to run docker (like the start command)
 
-The only thing you should think about is to configure your environment proxy http_proxy and https_proxy and the scripts would do the rest.
+The only thing you should think about is to configure your environment proxy http_proxy (or being a parkeon users) and the scripts would do the rest.
 
-Beware if you run docker with sudo to use "sudo -E" in order to propagate your current environment variables.
- 
 
 ## How to use it
 
 ### build
 
-    docker build -t myparkfolio/docker-forgetproxy --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy .
+    with http_proxy defined in your env : docker build -t myparkfolio/docker-forgetproxy --build-arg http_proxy=$http_proxy .
 
 First step is to build the project if it is not already done.
 
@@ -53,7 +51,7 @@ First step is to build the project if it is not already done.
 It is recommended to let the container run in the foreground as it is configured to intercept the CTRL+C and clean
 the iptables rules on exit.
 
-Manage http and https on the same port 3128, only one configuration is required but both are configured.
+Manage http on port 3128, https is not supported.
 
 ### stop
 

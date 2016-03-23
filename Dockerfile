@@ -1,25 +1,19 @@
 FROM centos:centos7
 
 ENV http_proxy ${http_proxy:-nil}
-ENV https_proxy ${https_proxy:-nil}
 
-# Allow to manage proxy initialisation
-COPY contrib/proxy_debian.sh /etc/profile.d/
+COPY contrib/* /tmp/
 
-RUN . /etc/profile \
+RUN mv /tmp/proxy_centos.sh /etc/profile.d/ \
+    && chmod +x /etc/profile.d/proxy_centos.sh && . /etc/profile \
     && yum install -y \
         iptables \
         procps \
         psmisc \
         squid \
         nc \
-    && clear_proxy
+    && clear_proxy && mv /tmp/squid.conf /etc/squid/squid.conf && mv /tmp/squid /root/ && squid -z -F 
 
-COPY squid.conf /etc/squid/squid.conf
-COPY squid /root/
-
-# Make cache dirs 
-RUN squid -z -F
 
 EXPOSE 3128
 

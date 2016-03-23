@@ -12,7 +12,6 @@ iptables_rules() {
 
     iptables -t nat -$1 PREROUTING -p tcp --dport 80   -i docker0 -j REDIRECT --to 3128 2>/dev/null
     iptables -t nat -$1 PREROUTING -p tcp --dport 8080 -i docker0 -j REDIRECT --to 3128 2>/dev/null
-    iptables -t nat -$1 PREROUTING -p tcp -i docker0 -j REDIRECT --to 3128 
 }
 
 append_squid_conf() {
@@ -88,7 +87,7 @@ run() {
 
     # -X verbose debug logging
     # -N Don't run in daemon mode - important for docker
-    squid -X -N
+    squid -N
     #tail -f /dev/null
     #tail -f /var/log/squid/access.log
 }
