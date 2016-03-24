@@ -47,7 +47,7 @@ clear_proxy() {
 }
 
 # MAIN
-if [ ! -z "$http_proxy" ] &&  [ ! "$http_proxy" = '"nil"' ]; then
+if [ ! -z "$http_proxy" ]; then
     set_proxy $http_proxy
 else
     clear_proxy

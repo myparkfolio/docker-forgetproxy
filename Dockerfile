@@ -1,6 +1,6 @@
 FROM centos:centos7
 
-ENV http_proxy ${http_proxy:-nil}
+ENV http_proxy ${http_proxy}
 
 COPY contrib/* /tmp/
 
