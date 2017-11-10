@@ -70,7 +70,7 @@ interrupted () {
 
 run() {
     trap interrupted INT
-    trap terminated TERM
+    trap terminated TERM SIGTERM
 
     if [ -z "$http_proxy" ]; then
         echo "No http_proxy set. Exiting"
