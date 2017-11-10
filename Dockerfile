@@ -1,5 +1,7 @@
 FROM centos:centos7
 
+STOPSIGNAL TERM
+
 ENV http_proxy ${http_proxy}
 
 COPY contrib/* /tmp/
