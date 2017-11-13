@@ -87,7 +87,8 @@ run() {
     password=$(parse_password $http_proxy)
     append_squid_conf $host $port "3128" $login $password
 
-    iptables_rules A
+    # Sometimes rules not cleaned on restart (mode deamon), avoid duplicates
+    (iptables_rules C) 2> /dev/null || iptables_rules A
 
     # -X verbose debug logging
     # -N Don't run in daemon mode - important for docker
